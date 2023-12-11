@@ -35,7 +35,6 @@ class ProfileGeneratorThermal:
         self.simulation_year = general_data_input.simulation_year
         self.annual_demand = thermal_data_input.annual_demand
         self.shlf_type = thermal_data_input.subsector
-        self.subsector_name = thermal_data_input.subsector_name_th
         self.building_class = thermal_data_input.building_class
         self.wind_class = thermal_data_input.wind_class
         self.hot_water_include = thermal_data_input.hwd_include
@@ -107,7 +106,8 @@ class ProfileGeneratorCooling:
     def __init__(self, general_data_input:StandardBuildingProfileGeneralInput, cooling_data_input: StandardBuildingCoolingProfileInput): 
         self.simulation_year = general_data_input.simulation_year
         self.annual_demand = cooling_data_input.annual_demand
-        self.obj_cooling = CoolingProfileGenerator(self.simulation_year, self.annual_demand)
+        self.temperature = general_data_input.temperature
+        self.obj_cooling = CoolingProfileGenerator(self.simulation_year, self.annual_demand, self.temperature)
         self.sector = cooling_data_input.sector
 
     def generate_cooling_load_profile(self,) -> StandardLoadProfile:

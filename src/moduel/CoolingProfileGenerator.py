@@ -7,12 +7,12 @@ import pandas as pd
 
 
 class CoolingProfileGenerator:
-    def __init__(self,simulation_year,annual_demand):
+    def __init__(self,simulation_year,annual_demand, temperature):
         self.simulation_year = simulation_year
         self.annual_demand = annual_demand
         self.generic_profile_residential = pd.read_csv(datapath_generic_profile_residential)
         self.generic_profile_commercial = pd.read_csv(datapath_generic_profile_commercial)
-        self.temperature = pd.read_csv(datapath_temperature)
+        self.temperature = temperature
         self.holidays = holidays.Germany()
         self.holidays._populate(self.simulation_year)
         self.df = pd.DataFrame(index=pd.date_range(datetime.datetime(self.simulation_year, 1, 1, 0), periods=8760, freq="H"))
@@ -25,7 +25,7 @@ class CoolingProfileGenerator:
         end_date  = start_date + datetime.timedelta(days=364, hours=23)
         timestamps = pd.date_range(start=start_date, end=end_date, freq='H')
         df = pd.DataFrame({'Timestamp': timestamps})
-        df["temperature"] = self.temperature["temperature"].apply(math.ceil)
+        df["temperature"] = self.temperature.apply(math.ceil)
 
         df['day_type'] = df['Timestamp'].apply(lambda x: self.calculate_day_type(x, self.holidays))
         df['NUTS2_code'] = 'AT11'
@@ -86,9 +86,7 @@ class CoolingProfileGenerator:
         
 
 
-filename_temperature = "temperature.csv"
 dirname = os.getcwd()
-datapath_temperature = os.path.join(dirname,'src', "resources", filename_temperature)
 filename_generic_profile_residential = "generic_profile_residential.csv"
 datapath_generic_profile_residential = os.path.join(dirname,'src', "resources", filename_generic_profile_residential)
 filename_generic_profile_commercial = "generic_profile_tertiary.csv"

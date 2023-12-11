@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union, Any
 
 from pydantic import BaseConfig, BaseModel, Field
 
@@ -7,8 +7,8 @@ from pydantic import BaseConfig, BaseModel, Field
 
 class StandardBuildingProfileGeneralInput(BaseModel):
     simulation_year: int = Field(2023, ge=1900, le=2100, description='Base year for simulation')
-    #temperature: Any
-    #country: str = "DE"  # todo long term:Implement default values from holidays library
+    temperature: Any
+    # country: str = "DE"  # todo long term:Implement default values from holidays library
 
 
 class StandardBuildingElectricitySector(str, Enum):
@@ -43,7 +43,7 @@ class StandardBuildingElectricityProfileInput(BaseModel):
                     StandardBuildingElectricityCommercialSubSector,
                     StandardBuildingElectricityAgriculturalSubSector,
                     StandardBuildingElectricityIndustrialSubSector]
-    subsector: Optional[str] = Field(None, description='My optional string field')
+    subsector: str = Field(None, description='My optional string field')
     annual_demand: float = Field(80, ge=0, description='Annual demand in MWh')
     
 
@@ -74,7 +74,7 @@ class StandardBuildingHeatingIndustrialSubSector(str, Enum):
 
 class StandardBuildingHeatingWindClass(str, Enum):
     windy_area = 'Windy area'
-    Non_windy_area= 'Non windy area'
+    Non_windy_area = 'Non windy area'
 
 class StandardBuildingHeatingAgeClass(str, Enum):
     Old = 'Before_1973'
@@ -87,15 +87,15 @@ class StandardBuildingHeatingProfileInput(BaseModel):
     subsector_name: Union[StandardBuildingHeatingResidentialSubSector,
                           StandardBuildingHeatingCommercialSubSector,
                           StandardBuildingHeatingIndustrialSubSector]
-    subsector: Optional[str] = Field(None, description='My optional string field')
-    wind_class: Optional[bool] = Field(None, description='My optional boolean field')
-    wind_class_name: Optional[str] = Field(None, description='My optional string field')
-    building_class: Optional[int] = Field(None, ge=0, description='Building class, an integer greater than or equal to 0')
-    building_class_name: Optional[str] = Field(None, description='My optional string field')
-    annual_demand: Optional[float] = Field(None, ge=0, description='Optional annual demand in MWh greater than or equal to 0')
-    hwd_include: Optional[bool] = Field(None, description='My optional boolean field')
-    slp: Optional[bool] = Field(None, description='My optional boolean field')
-    dict_days: Optional[Dict[str, float]] = None
+    subsector: str = Field(None, description='My optional string field')
+    wind_class: bool = Field(None, description='My optional boolean field')
+    wind_class_name: str = Field(None, description='My optional string field')
+    building_class: int = Field(None, ge=0, description='Building class, an integer greater than or equal to 0')
+    building_class_name: str = Field(None, description='My optional string field')
+    annual_demand: float = Field(None, ge=0, description='Optional annual demand in MWh greater than or equal to 0')
+    hwd_include: bool = Field(None, description='My optional boolean field')
+    slp: bool = Field(None, description='My optional boolean field')
+    dict_days: Dict[str, float] = None
 
 
 class StandardBuildingCoolingSector(str, Enum):
@@ -115,7 +115,7 @@ class StandardBuildingProfileInputs(BaseModel):
 class StandardIndustrialProfileInput(StandardBuildingProfileGeneralInput):
     simulation_year: int = Field(2023, ge=1900, le=2100, description='Base year for simulation')
     begginig_workday: int = Field(8, ge=0, le=24, description='Beginning of workday in hours')
-    end_workday:int = Field(16, ge=0, le=24, description='End of workday in hours')
+    end_workday: int = Field(16, ge=0, le=24, description='End of workday in hours')
     weekday_day_factor: float = Field(1.0, ge=0, le=1)
     weekday_night_factor: float = Field(0.8, ge=0, le=1)
     weekend_day_factor: float = Field(0.0, ge=0, le=1)
@@ -125,8 +125,8 @@ class StandardIndustrialProfileInput(StandardBuildingProfileGeneralInput):
 
 class StandardLoadProfile(BaseModel):                         
     value: List[float] = None
-    name: Optional[str] = Field(None, description='list of profile names')
-    color: Optional[str] = Field(None, description='list of profile colors')
+    name: str = Field(None, description='list of profile names')
+    color: str = Field(None, description='list of profile colors')
     class Config(BaseConfig):
         arbitrary_types_allowed = True
 
