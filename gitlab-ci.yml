@@ -1,0 +1,20 @@
+image: python:latest
+
+variables:
+    http_proxy: $CODE_PROXY
+    https_proxy: $CODE_PROXY
+    no_proxy: "127.0.0.1,localhost,.siemens.de,.siemens.net,.siemens.com,.siemens.io"
+    PYTHON_VERSION_SHORT: "3.10"
+    POETRY_VERSION_SHORT: "1.3"
+
+
+stages:
+  - test
+
+verify:
+  stage: test
+  image: ${CI_REGISTRY}/code-ops/poetry-docker:${POETRY_VERSION_SHORT}-py${PYTHON_VERSION_SHORT}
+  script:
+    - pip install poetry
+    - poetry install --only main
+    - poetry run pytest
