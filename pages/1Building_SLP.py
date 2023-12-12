@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from streamlit_component.DataInput import (CoolingInput, ElectricalInput,
-                                  GeneralDataInputBuilding, ThermalInput)
+                                  GeneralDataInputBuilding, ThermalInput, streamlit_visulization, pydantic)
 from src.moduel.ProfileRunner import (ProfileGeneratorCooling,
                                       ProfileGeneratorElectrical,
                                       ProfileGeneratorThermal)
@@ -45,105 +45,16 @@ if st.checkbox("Upload your json file for input data"):
     with st.form("Upload your json file", clear_on_submit=True):
         uploaded_file = st.file_uploader("Upload your json file", type="json", accept_multiple_files=False)
         submit_button = st.form_submit_button("Submit")
+        input_data = None
         if submit_button and uploaded_file is not None:
             st.success("File uploaded successfully")
             input_data = json.load(uploaded_file)
-                
-            pydantic_validation = PydanticValidation()
-            general_data_input_valid = pydantic_validation.validation_general_data(input_data["general_data"])
-            general_data_input_valid.temperature = general_data_input.temperature
-            electrical_input_valid = pydantic_validation.validation_electrical_data(input_data["electrical_data"])
-            thermal_input_valid = pydantic_validation.validation_thermal_data(input_data["thermal_data"])
-            cooling_input_valid = pydantic_validation.validation_cooling_data(input_data["cooling_data"])
-            electrical_profile_obj = ProfileGeneratorElectrical(general_data_input_valid,electrical_input_valid)
-            thermal_profile_obj = ProfileGeneratorThermal(general_data_input_valid,thermal_input_valid)
-            cooling_profile_obj = ProfileGeneratorCooling(general_data_input_valid,cooling_input_valid)
-            electrical_profile = electrical_profile_obj.generate_electrical_load_profile()
-            thermal_profile = thermal_profile_obj.generate_thermal_load_profile()
-            cooling_profile = cooling_profile_obj.generate_cooling_load_profile()
-            # region visualizer
-            tab_load_profile, tab_heat_map, tab_duration_curve = st.tabs(["Load profile", "Heat map", "Duration curve"])
-            with tab_load_profile:
-                st.write("Load profile")
-                visualizer = DataVisualizer()
-                visualizer.plot_load_profile(electrical_profile)
-                visualizer.plot_load_profile(*thermal_profile)
-                visualizer.plot_load_profile(cooling_profile)
-                # download all the profiles
-                all_profiles = {
-                    'Electrical Profile': electrical_profile.value,
-                    'Total Thermal Profile': thermal_profile[0].value if thermal_input.hwd_include else thermal_profile[0].value,
-                    'Cooling Profile': cooling_profile.value,
-                }
-                if thermal_input.hwd_include:
-                    all_profiles['Domestic Hot Water Profile'] = thermal_profile[1].value
-                    all_profiles['Space Heating Profile'] = thermal_profile[2].value
-
-                aligned_outside_temperature = general_data_input.temperature.reindex(all_profiles['Total Thermal Profile'].index).interpolate()
-                all_profiles['Outside Temperature Profile'] = aligned_outside_temperature
-
-                all_profiles_df = pd.concat(all_profiles.values(), axis=1, keys=all_profiles.keys())
-                csv_data = all_profiles_df.to_csv().encode('utf-8')
-                st.download_button(label='Download All Profile CSV Files', data=csv_data,
-                                file_name='all_profiles.csv', mime='text/csv')
-
-            with tab_heat_map:
-                st.write("Heat map")
-                visualizer.plot_heatmap(electrical_profile, old_profile_name=electrical_input.subsector)
-                visualizer.plot_heatmap(thermal_profile[0], old_profile_name='temperature_geo')
-                visualizer.plot_heatmap(cooling_profile, old_profile_name='load_real')
-
-            with tab_duration_curve:
-                st.write("Duration curve")
-                visualizer.plot_duration_curve(electrical_profile, thermal_profile[0], cooling_profile)
-            # endregion
         else:
             st.error("Please upload a json file")
+    with st.container():
+        if input_data is not None:
+            general_data_input_valid, electrical_input_valid, thermal_input_valid, cooling_input_valid = pydantic(input_data, general_data_input)
+            streamlit_visulization(general_data_input_valid,electrical_input_valid,thermal_input_valid,cooling_input_valid)
 else:
-    electrical_profile_obj = ProfileGeneratorElectrical(general_data_input,electrical_input)
-    thermal_profile_obj = ProfileGeneratorThermal(general_data_input,thermal_input)
-    cooling_profile_obj = ProfileGeneratorCooling(general_data_input,cooling_input)
-    #endregion
-
-    # region generate profile
-    electrical_profile = electrical_profile_obj.generate_electrical_load_profile()
-    thermal_profile = thermal_profile_obj.generate_thermal_load_profile()
-    cooling_profile = cooling_profile_obj.generate_cooling_load_profile()
-    # endregion
-
-    # region visualizer
-    tab_load_profile, tab_heat_map, tab_duration_curve = st.tabs(["Load profile", "Heat map", "Duration curve"])
-    with tab_load_profile:
-        st.write("Load profile")
-        visualizer = DataVisualizer()
-        visualizer.plot_load_profile(electrical_profile)
-        visualizer.plot_load_profile(*thermal_profile)
-        visualizer.plot_load_profile(cooling_profile)
-        # download all the profiles
-        all_profiles = {
-            'Electrical Profile': electrical_profile.value,
-            'Total Thermal Profile': thermal_profile[0].value if thermal_input.hwd_include else thermal_profile[0].value,
-            'Cooling Profile': cooling_profile.value,
-        }
-        if thermal_input.hwd_include:
-            all_profiles['Domestic Hot Water Profile'] = thermal_profile[1].value
-            all_profiles['Space Heating Profile'] = thermal_profile[2].value
-
-        aligned_outside_temperature = general_data_input.temperature.reindex(all_profiles['Total Thermal Profile'].index).interpolate()
-        all_profiles['Outside Temperature Profile'] = aligned_outside_temperature
-
-        all_profiles_df = pd.concat(all_profiles.values(), axis=1, keys=all_profiles.keys())
-        csv_data = all_profiles_df.to_csv().encode('utf-8')
-        st.download_button(label='Download All Profile CSV Files', data=csv_data,
-                        file_name='all_profiles.csv', mime='text/csv')
-
-    with tab_heat_map:
-        st.write("Heat map")
-        visualizer.plot_heatmap(electrical_profile, old_profile_name=electrical_input.subsector)
-        visualizer.plot_heatmap(thermal_profile[0], old_profile_name='temperature_geo')
-        visualizer.plot_heatmap(cooling_profile, old_profile_name='load_real')
-
-    with tab_duration_curve:
-        st.write("Duration curve")
-        visualizer.plot_duration_curve(electrical_profile, thermal_profile[0], cooling_profile)
-    # endregion
+    streamlit_visulization(general_data_input,electrical_input,thermal_input,cooling_input)
+# endregion 

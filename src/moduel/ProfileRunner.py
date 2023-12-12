@@ -16,8 +16,7 @@ class ProfileGeneratorElectrical:
     def __init__(self, general_data_input: StandardBuildingProfileGeneralInput, electrical_data_input:StandardBuildingElectricityProfileInput):
         self.simulation_year = general_data_input.simulation_year
         self.electrical_demand =  electrical_data_input.annual_demand
-        electrical_dict = map_subsector_to_demandlib()
-        self.subsector = electrical_dict[electrical_data_input.subsector_name]
+        self.subsector = electrical_data_input.subsector
 
     def generate_electrical_load_profile(self,) -> StandardLoadProfile:
         obj_el = ElecSlp(self.simulation_year ,holidays=holidays.Germany(years = self.simulation_year))
@@ -35,12 +34,9 @@ class ProfileGeneratorThermal:
     def __init__(self, general_data_input: StandardBuildingProfileGeneralInput, thermal_data_input: StandardBuildingHeatingProfileInput):
         self.simulation_year = general_data_input.simulation_year
         self.annual_demand = thermal_data_input.annual_demand
-        subsector_dict = map_subsector_to_demandlib()
-        self.shlf_type =  subsector_dict[thermal_data_input.subsector_name]
-        wind_class_dict = map_wind_calss_to_demandlib()
-        self.wind_class = wind_class_dict[thermal_data_input.wind_class_name]
-        building_class_dict = map_building_calss_to_demandlib()
-        self.building_class = building_class_dict[thermal_data_input.building_class_name]
+        self.shlf_type =  thermal_data_input.subsector
+        self.wind_class = thermal_data_input.wind_class
+        self.building_class = thermal_data_input.building_class
         self.hot_water_include = thermal_data_input.hwd_include
         self.dict_days = thermal_data_input.dict_days
         self.slp = thermal_data_input.slp
@@ -161,7 +157,8 @@ class ProfileGeneratorIndustrial:
         profile.color = ['#D53513']
         profile.value = profile_data_th.iloc[:, 0]
         return profile 
-    
+
+
 
 def map_subsector_to_demandlib() -> str:
     subsector_data = {
@@ -210,3 +207,4 @@ def map_building_calss_to_demandlib() -> str:
         StandardBuildingHeatingAgeClass.New: 11,
     }
     return building_class_data
+

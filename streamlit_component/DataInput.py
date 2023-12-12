@@ -5,11 +5,10 @@ import json
 
 from src.moduel.Data_Model import *
 from src.moduel.DataFileImporter import readCSVasDataFrame as readCSV
-from src.moduel.ProfileRunner import (map_building_calss_to_demandlib,
-                                      map_subsector_to_demandlib,
-                                      map_wind_calss_to_demandlib)
+from src.moduel.ProfileRunner import map_building_calss_to_demandlib, map_subsector_to_demandlib, map_wind_calss_to_demandlib
 from src.moduel.Visualizer import DataVisualizer
-
+from src.moduel.ProfileRunner import (ProfileGeneratorCooling,ProfileGeneratorElectrical,ProfileGeneratorThermal)
+from src.moduel.Pydantic_validification import PydanticValidation
 
 class GeneralDataInputBuilding:
     def run_general_data_input(self,):
@@ -280,3 +279,56 @@ class GeneralDataInputIndustrial:
     def handle_json(self,):
         self.json_general_data = {"simulation_year": self.simulation_year, "begginig_workday": self.begginig_workday, "end_workday": self.end_workday, "weekday_day_factor": self.weekday_day_factor, "weekday_night_factor": self.weekday_night_factor, "weekend_day_factor": self.weekend_day_factor, "weekend_night_factor": self.weekend_night_factor, "annual_demand_el": self.annual_demand_el, "annual_demand_th": self.annual_demand_th}
         return self.json_general_data
+    
+
+def streamlit_visulization(general_data_input, electrical_data_input, thermal_data_input, cooling_data_input,):
+        electrical_profile_obj = ProfileGeneratorElectrical(general_data_input, electrical_data_input)
+        thermal_profile_obj = ProfileGeneratorThermal(general_data_input,thermal_data_input)
+        cooling_profile_obj = ProfileGeneratorCooling(general_data_input,cooling_data_input)
+        electrical_profile = electrical_profile_obj.generate_electrical_load_profile()
+        thermal_profile = thermal_profile_obj.generate_thermal_load_profile()
+        cooling_profile = cooling_profile_obj.generate_cooling_load_profile()
+
+        tab_load_profile, tab_heat_map, tab_duration_curve = st.tabs(["Load profile", "Heat map", "Duration curve"])
+        with tab_load_profile:
+            st.write("Load profile")
+            visualizer = DataVisualizer()
+            visualizer.plot_load_profile(electrical_profile)
+            visualizer.plot_load_profile(*thermal_profile)
+            visualizer.plot_load_profile(cooling_profile)
+            # download all the profiles
+            all_profiles = {
+                'Electrical Profile': electrical_profile.value,
+                'Total Thermal Profile': thermal_profile[0].value if thermal_data_input.hwd_include else thermal_profile[0].value,
+                'Cooling Profile': cooling_profile.value,
+            }
+            if thermal_data_input.hwd_include:
+                all_profiles['Domestic Hot Water Profile'] = thermal_profile[1].value
+                all_profiles['Space Heating Profile'] = thermal_profile[2].value
+
+            aligned_outside_temperature = general_data_input.temperature.reindex(all_profiles['Total Thermal Profile'].index).interpolate()
+            all_profiles['Outside Temperature Profile'] = aligned_outside_temperature
+
+            all_profiles_df = pd.concat(all_profiles.values(), axis=1, keys=all_profiles.keys())
+            csv_data = all_profiles_df.to_csv().encode('utf-8')
+            st.download_button(label='Download All Profile CSV Files', data=csv_data,
+                            file_name='all_profiles.csv', mime='text/csv')
+            
+        with tab_heat_map:
+            st.write("Heat map")
+            visualizer.plot_heatmap(electrical_profile, old_profile_name= electrical_data_input.subsector)
+            visualizer.plot_heatmap(thermal_profile[0], old_profile_name='temperature_geo')
+            visualizer.plot_heatmap(cooling_profile, old_profile_name='load_real')
+
+        with tab_duration_curve:
+            st.write("Duration curve")
+            visualizer.plot_duration_curve(electrical_profile, thermal_profile[0], cooling_profile)
+
+def pydantic(input_json_data, general_data_input):
+            pydantic_validation = PydanticValidation()
+            general_data_input_valid = pydantic_validation.validation_general_data(input_json_data["general_data"])
+            general_data_input_valid.temperature = general_data_input.temperature
+            electrical_input_valid = pydantic_validation.validation_electrical_data(input_json_data["electrical_data"])
+            thermal_input_valid = pydantic_validation.validation_thermal_data(input_json_data["thermal_data"])
+            cooling_input_valid = pydantic_validation.validation_cooling_data(input_json_data["cooling_data"])
+            return general_data_input_valid, electrical_input_valid, thermal_input_valid, cooling_input_valid
