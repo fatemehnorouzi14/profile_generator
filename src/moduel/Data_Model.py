@@ -43,7 +43,7 @@ class StandardBuildingElectricityProfileInput(BaseModel):
                     StandardBuildingElectricityCommercialSubSector,
                     StandardBuildingElectricityAgriculturalSubSector,
                     StandardBuildingElectricityIndustrialSubSector]
-    subsector: str = Field(None, description='My optional string field')
+    subsector: Any
     annual_demand: float = Field(80, ge=0, description='Annual demand in MWh')
     
 
@@ -87,15 +87,15 @@ class StandardBuildingHeatingProfileInput(BaseModel):
     subsector_name: Union[StandardBuildingHeatingResidentialSubSector,
                           StandardBuildingHeatingCommercialSubSector,
                           StandardBuildingHeatingIndustrialSubSector]
-    subsector: str = Field(None, description='My optional string field')
-    wind_class: bool = Field(None, description='My optional boolean field')
+    subsector: Any
+    wind_class: Any
     wind_class_name: str = Field(None, description='My optional string field')
-    building_class: int = Field(None, ge=0, description='Building class, an integer greater than or equal to 0')
+    building_class: Any
     building_class_name: str = Field(None, description='My optional string field')
     annual_demand: float = Field(None, ge=0, description='Optional annual demand in MWh greater than or equal to 0')
     hwd_include: bool = Field(None, description='My optional boolean field')
     slp: bool = Field(None, description='My optional boolean field')
-    dict_days: Dict[str, float] = None
+    dict_days: Any
 
 
 class StandardBuildingCoolingSector(str, Enum):

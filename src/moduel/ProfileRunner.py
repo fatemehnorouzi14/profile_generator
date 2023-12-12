@@ -16,7 +16,8 @@ class ProfileGeneratorElectrical:
     def __init__(self, general_data_input: StandardBuildingProfileGeneralInput, electrical_data_input:StandardBuildingElectricityProfileInput):
         self.simulation_year = general_data_input.simulation_year
         self.electrical_demand =  electrical_data_input.annual_demand
-        self.subsector = electrical_data_input.subsector
+        electrical_dict = map_subsector_to_demandlib()
+        self.subsector = electrical_dict[electrical_data_input.subsector_name]
 
     def generate_electrical_load_profile(self,) -> StandardLoadProfile:
         obj_el = ElecSlp(self.simulation_year ,holidays=holidays.Germany(years = self.simulation_year))
@@ -34,9 +35,12 @@ class ProfileGeneratorThermal:
     def __init__(self, general_data_input: StandardBuildingProfileGeneralInput, thermal_data_input: StandardBuildingHeatingProfileInput):
         self.simulation_year = general_data_input.simulation_year
         self.annual_demand = thermal_data_input.annual_demand
-        self.shlf_type = thermal_data_input.subsector
-        self.building_class = thermal_data_input.building_class
-        self.wind_class = thermal_data_input.wind_class
+        subsector_dict = map_subsector_to_demandlib()
+        self.shlf_type =  subsector_dict[thermal_data_input.subsector_name]
+        wind_class_dict = map_wind_calss_to_demandlib()
+        self.wind_class = wind_class_dict[thermal_data_input.wind_class_name]
+        building_class_dict = map_building_calss_to_demandlib()
+        self.building_class = building_class_dict[thermal_data_input.building_class_name]
         self.hot_water_include = thermal_data_input.hwd_include
         self.dict_days = thermal_data_input.dict_days
         self.slp = thermal_data_input.slp

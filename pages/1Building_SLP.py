@@ -24,7 +24,6 @@ thermal_input.run_thermal_input()
 cooling_input = CoolingInput()
 cooling_input.run_cooling_input()
 
-
 #export all of the json data
 input_data_json = {
     "general_data":general_data_input.json(),

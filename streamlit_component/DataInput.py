@@ -69,9 +69,9 @@ class ElectricalInput:
                 options = [e.value for e in list(StandardBuildingElectricityAgriculturalSubSector)]
             if self.sector == StandardBuildingElectricitySector.Agricultural:
                 options = [e.value for e in list(StandardBuildingElectricityAgriculturalSubSector)]
-            self.subsector_name_el = st.selectbox('Sub-sector:', options)
+            self.subsector_name = st.selectbox('Sub-sector:', options)
             subsector = map_subsector_to_demandlib()
-            self.subsector = subsector[self.subsector_name_el]
+            self.subsector = subsector[self.subsector_name]
 
     def handle_annual_demand_input(self,):
         annual_demand_elc  = st.container()
@@ -79,8 +79,14 @@ class ElectricalInput:
             self.annual_demand = st.number_input('Annual electrical demand in MWh:', 0.0, 20000.0, 80.0, 0.01, key="unique_key_value_2") *1000
 
     def json(self,):
-        electrical_data_json = StandardBuildingElectricityProfileInput(sector=self.sector, subsector=self.subsector, subsector_name=self.subsector_name_el, annual_demand=self.annual_demand)
-        json_electrical_data = electrical_data_json.json()
+        #electrical_data_json = StandardBuildingElectricityProfileInput(sector=self.sector, subsector=self.subsector, subsector_name=self.subsector_name, annual_demand=self.annual_demand)
+        #json_electrical_data = electrical_data_json.json()
+        electrical_data_json = {
+            "sector": self.sector,
+            "subsector_name": self.subsector_name,
+            "annual_demand": self.annual_demand,
+        }
+        json_electrical_data = json.dumps(electrical_data_json)
         return json_electrical_data
 
 class ThermalInput:
@@ -103,9 +109,9 @@ class ThermalInput:
                 options = [e.value for e in list(StandardBuildingHeatingResidentialSubSector)]
             if self.sector == StandardBuildingHeatingSector.Commercial:
                 options = [e.value for e in list(StandardBuildingHeatingCommercialSubSector)]
-            self.subsector_name_th = st.selectbox('Demand sector:', options)
+            self.subsector_name = st.selectbox('Demand sector:', options)
             subsector_dict = map_subsector_to_demandlib()
-            self.subsector = subsector_dict[self.subsector_name_th]
+            self.subsector = subsector_dict[self.subsector_name]
 
     def handle_annual_demand_input(self,):
         annual_demand_elc  = st.container()
@@ -193,9 +199,16 @@ class ThermalInput:
             self.dict_days = None
             
     def json(self,):
-        theraml_data_json = StandardBuildingHeatingProfileInput(sector=self.sector, subsector=self.subsector, subsector_name=self.subsector_name_th, wind_class=self.wind_class, wind_class_name=self.wind_class_name, building_class=self.building_class, building_class_name=self.building_class_name, annual_demand=self.annual_demand, hwd_include=self.hwd_include, slp=self.slp, dict_days=self.dict_days)
-        json_thermal_data = theraml_data_json.json()
-        return json_thermal_data
+        json_thermal_data = {
+            "sector": self.sector,
+            "subsector_name": self.subsector_name,
+            "wind_class_name": self.wind_class_name,
+            "building_class_name": self.building_class_name,
+            "annual_demand": self.annual_demand,
+            "hwd_include": self.hwd_include,
+            "slp": self.slp,
+        }
+        return json.dumps(json_thermal_data)
 
 
 class CoolingInput:
