@@ -157,8 +157,7 @@ class ProfileGeneratorIndustrial:
         profile.color = ['#D53513']
         profile.value = profile_data_th.iloc[:, 0]
         return profile 
-
-
+    
 
 def map_subsector_to_demandlib() -> str:
     subsector_data = {
